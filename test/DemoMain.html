@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<title>CPC354 Demo</title>
+
+	<!-- Link CSS, JS, and WebGL -->
+	<!-- webgl-utils.js	: standard utilities from Google to set up a WebGL context -->
+	<!-- initShaders.js	: contains helper functions to compile and link WebGL shaders to the application -->
+	<!-- MV.js			: provides matrix and vector manipulation functions APIs for WebGL -->
+	<!-- DemoJS.js		: your JS file -->
+	<!-- DemoCSS.css	: your CSS file -->
+	<script type="text/javascript" src="Common/webgl-utils.js"></script>
+	<script type="text/javascript" src="Common/initShaders.js"></script>
+	<script type="text/javascript" src="Common/MV.js"></script>
+	<script type="text/javascript" src="Demo_2_Gasket3D.js"></script>
+	<link rel="stylesheet" type="text/css" href="DemoCSS.css">
+
+	<!-- Define the vertex shader -->
+	<script id="vertex-shader" type="x-shader/x-vertex">
+		// Declare the global variable(s) for draw calls
+		uniform mat4 projectionMatrix;
+		uniform mat4 modelViewMatrix;
+		
+		// Declare the input variable(s) to receive per-vertex data from the application
+		attribute vec4 vPosition;
+		attribute vec4 vColor;
+		
+		// Declare the varying variable(s) to pass data to the fragment shader
+		varying vec4 fColor;
+
+		void main()
+		{
+			gl_Position = projectionMatrix * modelViewMatrix * vPosition;
+			fColor = vColor;
+		}
+	</script>
+
+	<!-- Define the fragment shader -->
+	<script id="fragment-shader" type="x-shader/x-fragment">
+		precision mediump float;
+		varying vec4 fColor;
+
+		void main()
+		{
+			gl_FragColor = fColor;
+		}
+	</script>
+</head>
+
+<body>
+	<div class="canvas">
+		<canvas id="gl-canvas" width="1280" height="720">
+			Error: your browser doesn't support the HTML5 canvas element
+		</canvas>
+	</div>
+</body>
+
+</html>
