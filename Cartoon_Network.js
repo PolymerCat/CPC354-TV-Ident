@@ -27,6 +27,53 @@ var vertices = [
     vec4(-0.8165 * 2, -0.4714 * 2,  0.3333 * 2, 1.0000),
     vec4( 0.8165 * 2, -0.4714 * 2,  0.3333 * 2, 1.0000)
 ];
+var verticesC = [
+    vec4(-0.5,  0.5, 0.0, 1.0), // Top-left
+    vec4(-0.4,  0.6, 0.0, 1.0), // Curve top-left
+    vec4( 0.0,  0.6, 0.0, 1.0), // Curve top-right
+    vec4( 0.0, -0.6, 0.0, 1.0), // Curve bottom-right
+    vec4(-0.4, -0.6, 0.0, 1.0), // Curve bottom-left
+    vec4(-0.5, -0.5, 0.0, 1.0),  // Bottom-left
+    vec4(-0.5, 0, 0.0, 1.0), // center out
+
+    vec4(-0.4,  0.4, 0.0, 1.0), // Top-left-in
+    vec4(-0.3,  0.4, 0.0, 1.0), // Curve top-left
+    vec4( 0.0,  0.5, 0.0, 1.0), // Curve top-right
+    vec4( 0.0, -0.5, 0.0, 1.0), // Curve bottom-right
+    vec4(-0.4, -0.6, 0.0, 1.0), // Curve bottom-left
+    vec4(-0.4, -0.4, 0.0, 1.0),  // Bottom-left
+    vec4(-0.4, 0, 0.0, 1.0) // center in
+];
+
+
+var verticesN = [
+    vec4(2.6,1,-0.5,1.0), //B1
+    vec4(3,1.0,-0.5,1.0), //B2
+    vec4(2.6,-0.3,-0.45,1.0), //B3
+    vec4(2.6,-1,-0.45,1.0), //B4
+    vec4(3,-1,-0.45,1.0), //B5
+    
+    vec4(1,1,-0.45,1.0), //A1
+    vec4(1.4,1,-0.45,1.0), //A2
+    vec4(1.4,0.3,-0.45,1.0), //A3
+    vec4(1,-1,-0.45,1.0), //A4
+    vec4(1.4,-1,-0.45,1.0) //A5
+];
+
+var verticesN2 = [
+    vec4(2.6  ,1,0.5,1.0), //B1
+    vec4(3  ,1.0,0.5,1.0), //B2
+    vec4(2.6  ,-0.3,0.45,1.0), //B3
+    vec4(2.6  ,-1,0.45,1.0), //B4
+    vec4(3  ,-1,0.45,1.0), //B5
+    
+    vec4(1  ,1,0.45,1.0), //A1
+    vec4(1.4  ,1,0.45,1.0), //A2
+    vec4(1.4  ,0.3,0.45,1.0), //A3
+    vec4(1  ,-1,0.45,1.0), //A4
+    vec4(1.4  ,-1,0.45,1.0) //A5
+
+];
 
 // Different colors for a tetrahedron (RGBA)
 var baseColors = [
@@ -63,8 +110,10 @@ var texCoord =
 window.onload = function init()
 {
     // Primitive (geometric shape) initialization
-    divideTetra(vertices[0], vertices[1], vertices[2], vertices[3], subdivNum);
-
+    
+    create_Triangle_N(verticesN[0],verticesN[1],verticesN[2],verticesN[3],verticesN[4],verticesN[5],verticesN[6],verticesN[7],verticesN[8],verticesN[9]);
+    create_Triangle_N(verticesN2[0],verticesN2[1],verticesN2[2],verticesN2[3],verticesN2[4],verticesN2[5],verticesN2[6],verticesN2[7],verticesN2[8],verticesN2[9]);
+    create_Triangle_N_3D();
 
     // WebGL setups
     getUIElement();
@@ -213,6 +262,8 @@ function render()
     projectionMatrix = ortho(-4, 4, -2.25, 2.25, 2, -2);
 	gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix));
 
+    
+
     // Pass a 4x4 model view matrix from JavaScript to the GPU for use in shader
     // Use translation to readjust the position of the primitive (if needed)
     modelViewMatrix = mat4();
@@ -231,8 +282,9 @@ function recompute()
 	colors = [];
     textures = [];
     
-    divideTetra(vertices[0], vertices[1], vertices[2], vertices[3], subdivNum);
-    
+    //divideTetra(vertices[0], vertices[1], vertices[2], vertices[3], subdivNum);
+    //divideCube(verticesbox[0], verticesbox[1], verticesbox[2], verticesbox[3], verticesbox[4], verticesbox[5], verticesbox[6], verticesbox[7], subdivNum);
+   
     configWebGL();
     render();
 }
@@ -263,7 +315,7 @@ function animUpdate()
     {
         case 0: // Animation 1
             theta[2] += 1;
-
+            theta[1] +=1;
             if(theta[2] >= 360)
             {
                 theta[2] = 360;
@@ -479,3 +531,39 @@ function divideTetra(a, b, c, d, count)
 }
 
 /*-----------------------------------------------------------------------------------*/
+
+
+function create_Triangle_N(B1,B2,B3,B4,B5,A1,A2,A3,A4,A5){
+    triangle(B1,B2,B3,0);
+    triangle(B2,B3,B5,1);
+    triangle(B3,B4,B5,2);
+
+    triangle(A2,A3,B3,3);
+    triangle(B3,B4,A3,0);
+
+    triangle(A1,A2,A3,1);
+    triangle(A1,A3,A4,2);
+    triangle(A3,A4,A5,3);
+}
+function create_N_Depth(a,b,c,d){
+    triangle(a,b,c,0);
+    triangle(d,b,c,1);
+}
+
+function create_Triangle_N_3D(){
+    var N1=verticesN
+    var N2=verticesN2
+
+    create_N_Depth(N1[0],N1[1],N2[0],N2[1]); // B1,B2
+    create_N_Depth(N1[0],N1[2],N2[0],N2[2]); // B1,B3
+    create_N_Depth(N1[1],N1[4],N2[1],N2[4]); // B2,B5
+    create_N_Depth(N1[3],N1[4],N2[3],N2[4]); // B4,B5
+
+    create_N_Depth(N1[6],N1[2],N2[6],N2[2]); // A2,B3
+    create_N_Depth(N1[7],N1[3],N2[7],N2[3]); // A3,B4
+
+    create_N_Depth(N1[5],N1[6],N2[5],N2[6]); // A1,A2
+    create_N_Depth(N1[5],N1[8],N2[5],N2[8]); // A1,A4
+    create_N_Depth(N1[7],N1[9],N2[7],N2[9]); // A3,A5
+    create_N_Depth(N1[8],N1[9],N2[8],N2[9]); // A4,A5
+}
