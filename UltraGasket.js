@@ -19,6 +19,11 @@ var iterTemp = 0, animSeq = 0, animFrame = 0, animFlag = false;
 // Variables for the 3D Sierpinski gasket
 var points = [], colors = [], textures = [];
 
+// Variables used for animations
+let depth = 0; // Current recursion depth
+const maxDepth = subdivNum; // Maximum recursion depth for the gasket
+
+
 // Vertices for the 3D Sierpinski gasket (X-axis, Y-axis, Z-axis, W)
 // For 3D, you need to set the z-axis to create the perception of depth
 var vertices = [
@@ -36,16 +41,7 @@ var baseColors = [
     vec4(0.0, 0.0, 0.0, 1.0)
 ];
 
-function translateVertices(vertices, offset,axis) {
-    return vertices.map(function(vertex) {
-        if(axis == 'x')
-            return vec4(vertex[0] + offset, vertex[1], vertex[2], vertex[3]);
-        if(axis == 'y')
-            return vec4(vertex[0] , vertex[1], vertex[2] + offset, vertex[3]);
-        if(axis == 'z')
-            return vec4(vertex[0] , vertex[1], vertex[2], vertex[3] + offset);
-    });
-}
+
 // Define texture coordinates for texture mapping onto a shape or surface
 var texCoord = 
 [
@@ -217,6 +213,8 @@ function render()
     // Use translation to readjust the position of the primitive (if needed)
     modelViewMatrix = mat4();
     modelViewMatrix = mult(modelViewMatrix, translate(0, -0.2357, 0));
+    modelViewMatrix = mult(modelViewMatrix, scale(0.2, 0.2, 1));
+    //modelViewMatrix = mult(modelViewMatrix, rotateX(-20));
     gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix));
 
     // Draw the primitive / geometric shape
@@ -256,56 +254,83 @@ function animUpdate()
     // Use translation to readjust the position of the primitive (if needed)
     modelViewMatrix = mat4();
     modelViewMatrix = mult(modelViewMatrix, translate(0, -0.2357, 0));
+    //modelViewMatrix = mult(modelViewMatrix, rotateX(-20));
+    modelViewMatrix = mult(modelViewMatrix, scale(0.2, 0.2, 1));
 
     // Switch case to handle the ongoing animation sequence
     // The animation is executed sequentially from case 0 to case n
     switch(animSeq)
     {
-        case 0: // Animation 1
-            theta[2] += 1;
+        case 0: // Rotate 180deg Right
+            
+            theta[2] -= 1;
 
-            if(theta[2] >= 360)
+            if(theta[2] <= -180)
             {
-                theta[2] = 360;
+                theta[2] = -180;
                 animSeq++;
             }
 
             break;
 
-        case 1: // Animation 2
-            theta[2] -= 1;
+        case 1: // Rotate 180deg Left
+            theta[2] += 1;
 
-            if(theta[2] <= 0)
+            if(theta[2] >= 0)
             {
                 theta[2] = 0;
                 animSeq++;
             }
 
             break;
+        
+        case 2: // Rotate 180deg Left
+            theta[2] += 1;
 
-        case 2: // Animation 3
+            if(theta[2] >= 180)
+            {
+                theta[2] = 180;
+                animSeq++;
+            }
+
+            break;
+        
+        case 3: // Rotate 180deg Right
+            theta[2] -=1;
+
+            if(theta[2] <= 0)
+                {
+                    theta[2] = 0;
+                    animSeq++;
+                }
+    
+                break;
+
+        case 4: // Scale Up
             scaleNum += 0.02;
             
-            if(scaleNum >= 4)
+            if(scaleNum >= 2.5)
             {
-                scaleNum = 4;
+                scaleNum = 2.5;
+                animSeq+=2;
+            }
+
+            break;
+
+        case 5: // Scale Down
+            scaleNum -= 0.01;
+            
+
+            if(scaleNum <= 0.5 )
+            {
+                
+                scaleNum = 0.5;
                 animSeq++;
             }
 
             break;
 
-        case 3: // Animation 4
-            scaleNum -= 0.02;
-
-            if(scaleNum <= 1)
-            {
-                scaleNum = 1;
-                animSeq++;
-            }
-
-            break;
-
-        case 4: // Animation 5
+        case 6: // Animation 5
             move[0] += 0.0125;
             move[1] += 0.005;
 
@@ -317,7 +342,7 @@ function animUpdate()
             }
             break;
 
-        case 5: // Animation 6
+        case 7: // Animation 6
             move[0] -= 0.0125;
             move[1] -= 0.005;
 
@@ -329,7 +354,7 @@ function animUpdate()
             }
             break;
 
-        case 6: // Animation 7
+        case 8: // Animation 7
             move[0] += 0.0125;
             move[1] += 0.005;
 
@@ -348,7 +373,10 @@ function animUpdate()
     }
 
     // Perform vertex transformation
+    modelViewMatrix = mult(modelViewMatrix, rotateX(theta[0]));
+    modelViewMatrix = mult(modelViewMatrix, rotateY(theta[1]));
     modelViewMatrix = mult(modelViewMatrix, rotateZ(theta[2]));
+
     modelViewMatrix = mult(modelViewMatrix, scale(scaleNum, scaleNum, 1));
     modelViewMatrix = mult(modelViewMatrix, translate(move[0], move[1], move[2]));
 
@@ -361,6 +389,7 @@ function animUpdate()
     // Schedule the next frame for a looped animation (60fps)
     animFrame = window.requestAnimationFrame(animUpdate);
 }
+
 
 // Disable the UI elements when the animation is ongoing
 function disableUI()
@@ -479,3 +508,24 @@ function divideTetra(a, b, c, d, count)
 }
 
 /*-----------------------------------------------------------------------------------*/
+
+function animateGasket() {
+    // // Clear the screen
+    // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    // Update depth for animation
+    if (increasing) {
+        depth += 0.02; // Slowly increase depth
+        if (depth >= subdivNum) increasing = false; // Start disintegration
+    } else {
+        depth -= 0.02; // Slowly decrease depth
+        if (depth <= 0) increasing = true; // Start reveal again
+    }
+
+    // Render the Sierpiński Gasket with current depth
+    divideTetra(vertices[0], vertices[1], vertices[2], vertices[3],
+               Math.floor(depth)); // Pass integer depth
+
+    // // Request the next frame
+    // requestAnimationFrame(animateGasket);
+}
