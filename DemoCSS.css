@@ -1,153 +1,207 @@
-body
-{
-	width: 100vw;
-	height: 100vh;
-	padding: 0;
-	margin: 0;
-	text-decoration: none;
+/* General body styling */
+body {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+	background: url('https://img.freepik.com/free-vector/gradient-tropical-leaves-background_23-2148954475.jpg?t=st=1733431967~exp=1733435567~hmac=56c5908e8e99d42c36e79dacde11e126b8f1367bd550713bec48db4456ce540c&w=900') no-repeat center center fixed;
+	background-size: cover;
+    color: #ffffff;
     display: flex;
-	flex-direction: row;
-    align-items: center;
-    justify-content: center;
+    flex-direction: row; /* Change to row to make the content side by side */
+    align-items: stretch; /* Align items to stretch to full height */
+    justify-content: space-evenly; /* Space out the elements evenly */
+    min-height: 100vh; /* Ensure body takes up full viewport height */
 }
 
-.canvas
-{
-	border: 10px solid #4a4e69;
-	border-radius: 10px;
+/* Canvas container */
+.canvas {
+    margin: 20px;
+    text-align: center;
+    border: 3px solid #8f94fb;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    width: 65%; /* Give it a percentage width */
+    max-width: 80%;
+    height: 100%;
+    background: url('https://i.postimg.cc/kMKrJd9B/BG001.jpg') center/cover no-repeat;
+    /* For a gradient instead: */
+    /* background: linear-gradient(135deg, #3b4371, #f3904f); */
 }
 
-.horizontal-align
-{
-	display: flex;
-	flex-direction: row;
+#gl-canvas {
+    display: block;
+    max-width: 100%;
+    height: 100%;
+    border-radius: 10px;
+}
+
+/* Panel container */
+.panel {
+    background: linear-gradient(135deg, #4ec8c4, #6cffbf);
+    border-radius: 15px;
+    padding: 20px;
+    max-width: 30%; /* Adjust to 30% width */
+    margin: 20px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    height: 100%; /* Set height to 100% to match canvas height */
+}
+
+/* Parameter panel layout */
+.param-panel {
+    display: flex;
     align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Make sure to adjust the panel width if needed */
+.param-panel input {
+    flex-grow: 1;
+}
+
+.horizontal-align {
     justify-content: space-between;
 }
 
-.vertical-align
-{
-	display: flex;
-	flex-direction: column;
-    align-items: center;
-    justify-content: center;
+/* Slider styling */
+.slider {
+    flex: 1;
+    text-align: left;
+    font-size: 1rem;
+    color: #ffffff;
 }
 
-.panel
-{
-	background: linear-gradient(135deg, #4a4e69, #8f94fb);
-	margin-left: 10px;
-	max-width: 500px;
-	height: 720px;
-	border: 10px solid #4a4e69;
-	border-radius: 15px;
-	background-color: #022639;
-	padding: 20px;
-	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-	font-family: 'Arial', sans-serif;
+
+
+/* Slider container with range labels */
+.slider-container {
+    position: relative;
+    width: 100%;
+    margin-top: 15px;
 }
 
-.param-panel
-{
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	margin-bottom: 20px;
+.range-min,
+.range-max {
+    position: absolute;
+    top: -20px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #ffffff;
 }
 
-.mg-top-bottom
-{
-	margin-top: 10px;
-	margin-bottom: 10px;
+.range-min {
+    left: 0;
 }
 
-.slider
-{
-	margin-top: 5px;
-	font-weight: bold;
-	font-size: large;
-	color: #ffffff;
+.range-max {
+    right: 0;
 }
 
-.slider .slide
-{
-	width: 120px;
-	padding-top: 10px;
+/* Make sliders more unique */
+input.slide {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 8px;
+    border-radius: 5px;
+    background: linear-gradient(to right, #8f94fb, #4e54c8);
+    outline: none;
+    cursor: pointer;
+    transition: background 0.3s ease;
 }
 
-.checkText
-{
-	width: 150px;
-	height: 20px;
-	font-weight: bold;
-	font-size: large;
-	color: #ffffff;
+input.slide:hover {
+    background: linear-gradient(to right, #ffd700, #ff6347);
 }
 
-.checkRadio
-{
-	width: 20px;
-	height: 20px;
-	margin-right: 22px;
+input.slide::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #4e54c8;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
-.textbox
-{
-	margin-left: 15px;
-	width: 60px;
-	height: 60px;
-	background: #0077b6;
-	border: 5px solid #00b4d8;
-	border-radius: 10px;
+input.slide::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #4e54c8;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
-.textbox p
-{
-	position: relative;
-	color: #ffffff;
-	text-align: center;
-	font-weight: bold;
-	font-size: 27px;
-	line-height: 0.25;
+/* Textbox styling */
+.textbox {
+    width: 50px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    padding: 5px;
+    color: #ffffff;
 }
 
-#start-btn
-{
-	margin: 15px 0px 5px 0px;
-	width: 270px;
-	height: 70px;
-	background: #34a0a4;
-	border: 5px solid #99d98c;
-	border-radius: 10px;
-	color: #ffffff;
-	text-align: center;
-	font-weight: bold;
-	font-size: 27px;
-	outline : none;
+/* Radio buttons */
+.checkText {
+    font-size: 1rem;
+    flex-grow: 1;
+    text-align: left;
 }
 
-#start-btn:hover
-{
-	animation: bounce 1s;
+.checkRadio {
+    transform: scale(1.2);
+    accent-color: #4e54c8;
+    cursor: pointer;
 }
 
-#start-btn:active
-{
-  background-color 	: #21ff94;
-  box-shadow 		: 0 2px #666666;
-  transform 		: translateY(2px);
+/* Animation start button */
+#start-btn {
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: bold;
+    background: #ffd700;
+    color: #4e54c8;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+    text-transform: uppercase;
 }
 
-#start-btn:disabled
-{
-    animation: none;
-	pointer-events: none;
-	opacity: 0.5;
+#start-btn:hover {
+    background: #ffea00;
+    transform: scale(1.05);
 }
 
-@keyframes bounce 
-{
-	0%, 20%, 60%, 100%	{transform: translateY(0);}
-	40% 				{transform: translateY(-10px);}
-	80% 				{transform: translateY(-5px);}
+/* Adjust spacing for responsiveness if needed */
+@media screen and (max-width: 768px) {
+    body {
+        flex-direction: column; /* Stack elements on smaller screens */
+    }
+
+    .canvas,
+    .panel {
+        width: 90%; /* Allow canvas and panel to take up more space on smaller screens */
+    }
+
+    #gl-canvas {
+        height: auto;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    #start-btn {
+        font-size: 0.9rem;
+        padding: 8px 15px;
+    }
 }

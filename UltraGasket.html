@@ -60,55 +60,65 @@
 		<canvas id="gl-canvas" width="1280" height="720">
 			Error: your browser doesn't support the HTML5 canvas element
 		</canvas>
-		<!-- Loads textures for switching according to user. Hidden from view but ready to show when selected -->>
+		<!-- Loads textures for switching according to user. Hidden from view but ready to show when selected -->
 		<img id="texture-1" src="https://i.postimg.cc/kMKrJd9B/BG001.jpg" alt="texture 1" crossOrigin="anonymous" hidden>
 		<img id="texture-2" src="https://i.postimg.cc/05zfT3Fr/BG002.jpg" alt="texture 2" crossOrigin="anonymous" hidden>
 		<img id="texture-3" src="https://i.postimg.cc/15ppPZHR/BG003.jpg" alt="texture 3" crossOrigin="anonymous" hidden>
 	</div>
 
 	<!-- Panel for parameter customization -->
-	<div class="panel vertical-align">
-		<!-- Slider for number of subdivision -->
-		<div class="param-panel horizontal-align">
-			<div class="slider">
-				No. of Subdivision
-				<br>1<input class="slide" id="subdiv-slider" type="range" min="1" max="5" value="3">5
-			</div>
-			<div class="textbox">
-				<p id="subdiv-text">3</p>
-			</div>
-		</div>
+<div class="panel vertical-align">
+    <!-- Slider for number of subdivision (updated to column layout) -->
+    <div class="param-panel vertical-align">
+        <div class="slider">
+            No. of Subdivision
+            <br>
+            <div class="slider-container">
+                <span class="range-min">1</span>
+                <input class="slide" id="subdiv-slider" type="range" min="1" max="5" value="3" oninput="updateValueDisplay('subdiv-slider', 'subdiv-text')">
+                <span class="range-max">5</span>
+            </div>
+        </div>
+        <div class="textbox">
+            <p id="subdiv-text">3</p>
+        </div>
+    </div>
 
-		<!-- Slider for animation loop count -->
-		<div class="param-panel horizontal-align">
-			<div class="slider">
-				No. of Iteration
-				<br>1<input class="slide" id="iter-slider" type="range" min="1" max="5" value="1">5
-			</div>
-			<div class="textbox">
-				<p id="iter-text">1</p>
-			</div>
-		</div>
+    <!-- Slider for number of iterations (updated to column layout) -->
+    <div class="param-panel vertical-align">
+        <div class="slider">
+            No. of Iteration
+            <br>
+            <div class="slider-container">
+                <span class="range-min">1</span>
+                <input class="slide" id="iter-slider" type="range" min="1" max="5" value="1" oninput="updateValueDisplay('iter-slider', 'iter-text')">
+                <span class="range-max">5</span>
+            </div>
+        </div>
+        <div class="textbox">
+            <p id="iter-text">1</p>
+        </div>
+    </div>
 
-		<!-- Radio buttons for for textures -->
-		<div class="param-panel horizontal-align mg-top-bottom">
-			<div class="checkText">Enable Texture 1</div>
-			<input class="checkRadio" id ="check-texture-1" type="radio" name="radio" checked>
-		</div>
+    <!-- Texture options (updated to column layout) -->
+    <div class="param-panel vertical-align mg-top-bottom">
+        <div class="checkText">Enable Texture 1</div>
+        <input class="checkRadio" id="check-texture-1" type="radio" name="radio" checked>
+    </div>
 
-		<div class="param-panel horizontal-align mg-top-bottom">
-			<div class="checkText">Enable Texture 2</div>
-			<input class="checkRadio" id ="check-texture-2" type="radio" name="radio">
-		</div>
+    <div class="param-panel vertical-align mg-top-bottom">
+        <div class="checkText">Enable Texture 2</div>
+        <input class="checkRadio" id="check-texture-2" type="radio" name="radio">
+    </div>
 
-		<div class="param-panel horizontal-align mg-top-bottom">
-			<div class="checkText">Enable Texture 3</div>
-			<input class="checkRadio" id ="check-texture-3" type="radio" name="radio">
-		</div>
+    <div class="param-panel vertical-align mg-top-bottom">
+        <div class="checkText">Enable Texture 3</div>
+        <input class="checkRadio" id="check-texture-3" type="radio" name="radio">
+    </div>
 
-		<!-- Animation start button -->
-		<input id="start-btn" type="button" value="Start Animation">
-	</div>
+    <!-- Animation start button -->
+    <input id="start-btn" type="button" value="Start Animation">
+</div>
 </body>
 
 </html>
