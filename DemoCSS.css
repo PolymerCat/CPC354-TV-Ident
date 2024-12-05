@@ -35,18 +35,24 @@ body
 
 .panel
 {
+	background: linear-gradient(135deg, #4a4e69, #8f94fb);
 	margin-left: 10px;
-	width: 400px;
+	max-width: 500px;
 	height: 720px;
 	border: 10px solid #4a4e69;
-	border-radius: 10px;
+	border-radius: 15px;
 	background-color: #022639;
+	padding: 20px;
+	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+	font-family: 'Arial', sans-serif;
 }
 
 .param-panel
 {
-	width: 270px;
-	margin: 5px 0 5px 0;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 20px;
 }
 
 .mg-top-bottom
