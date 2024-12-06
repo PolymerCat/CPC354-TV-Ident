@@ -17,9 +17,18 @@ var subdivNum = 3, iterNum = 1, scaleNum = 1;
 var iterTemp = 0, animSeq = 0, animFrame = 0, animFlag = false;
 var speedFactor =1;
 
-
 // Variables for the 3D Sierpinski gasket
 var points = [], colors = [], textures = [];
+
+// Variables used for animations
+let depth = 0; // Current recursion depth
+const maxDepth = subdivNum; // Maximum recursion depth for the gasket
+let spinAnim = false;
+let colorAnim = false;
+let bothAnim = false;
+let reset_anim = false;
+let directionX = 1; // 1 means increasing, -1 means decreasing
+let directionY = 1; // 1 means increasing, -1 means decreasing
 
 // Vertices for the 3D Sierpinski gasket (X-axis, Y-axis, Z-axis, W)
 // For 3D, you need to set the z-axis to create the perception of depth
@@ -29,8 +38,7 @@ var vertices = [
     vec4(-0.8165 * 2, -0.4714 * 2,  0.3333 * 2, 1.0000),
     vec4( 0.8165 * 2, -0.4714 * 2,  0.3333 * 2, 1.0000)
 ];
-var verticesright = translateVertices(vertices,+10)
-var verticesleft = translateVertices(vertices,-10)
+
 // Different colors for a tetrahedron (RGBA)
 var baseColors = [
     vec4(1.0, 0.2, 0.4, 1.0),
@@ -39,11 +47,7 @@ var baseColors = [
     vec4(0.0, 0.0, 0.0, 1.0)
 ];
 
-function translateVertices(vertices, xOffset) {
-    return vertices.map(function(vertex) {
-        return vec4(vertex[0] + xOffset, vertex[1], vertex[2], vertex[3]);
-    });
-}
+
 // Define texture coordinates for texture mapping onto a shape or surface
 var texCoord = 
 [
@@ -62,10 +66,8 @@ window.onload = function init()
 {
     // Primitive (geometric shape) initialization
     divideTetra(vertices[0], vertices[1], vertices[2], vertices[3], subdivNum);
-    divideTetra(verticesright[0], verticesright[1], verticesright[2], verticesright[3], subdivNum);
-    divideTetra(verticesleft[0], verticesleft[1], verticesleft[2], verticesleft[3], subdivNum);
-    divideCube(verticesbox[0], verticesbox[1], verticesbox[2], verticesbox[3], verticesbox[4], verticesbox[5], verticesbox[6], verticesbox[7], subdivNum);
-    
+
+
     // WebGL setups
     getUIElement();
     configWebGL();
@@ -91,6 +93,10 @@ function getUIElement()
     tex3 = document.getElementById("texture-3");
     startBtn = document.getElementById("start-btn");
 
+    animSpin = document.getElementById("check-enable-spin")
+    animColor = document.getElementById("check-enable-color")
+    animBoth = document.getElementById("check-spin-color")
+
     subdivSlider.onchange = function(event) 
 	{
 		subdivNum = event.target.value;
@@ -113,14 +119,6 @@ function getUIElement()
         console.log("Speed Factor: " + speedFactor);
         speedFactor = event.target.value;
         speedtext.innerHTML= speedFactor;
-    };
-
-    document.getElementById("start-btn").onclick=function()
-    {
-        animFlag = true;
-        disableUI();
-        resetValue();
-        animUpdate();
     };
 
     checkTex1.onchange = function() 
@@ -152,13 +150,36 @@ function getUIElement()
 
     startBtn.onclick = function()
 	{
-		animFlag = true;
-        disableUI();
-        resetValue();
-        animUpdate();
+        if(!animFlag){
+            animFlag = true;
+            disableUI();
+            resetValue();
+            animUpdate();
+        }
+        else{
+            animFlag = false;
+            iterTemp = iterNum;
+            window.cancelAnimationFrame(animFrame);
+            recompute();
+            enableUI();
+            resetValue();
+        }
+		
 	};
-}
 
+    animSpin.onchange = function(){
+        if(animSpin.checked){
+            spinAnim=true;
+            recompute();
+        }
+        else{
+            spinAnim=false;
+            recompute();
+        }
+            
+    }
+
+}
 
 // Configure WebGL Settings
 function configWebGL()
@@ -231,13 +252,15 @@ function render()
 
     // Pass a 4x4 projection matrix from JavaScript to the GPU for use in shader
     // ortho(left, right, bottom, top, near, far)
-    projectionMatrix = ortho(-4, 4, -2.25, 2.25, 2, -2);
+    projectionMatrix = ortho(-4, 4, -2.25, 2.25, 20, -100);
 	gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix));
 
     // Pass a 4x4 model view matrix from JavaScript to the GPU for use in shader
     // Use translation to readjust the position of the primitive (if needed)
     modelViewMatrix = mat4();
     modelViewMatrix = mult(modelViewMatrix, translate(0, -0.2357, 0));
+    modelViewMatrix = mult(modelViewMatrix, scale(0.2, 0.2, 1));
+    //modelViewMatrix = mult(modelViewMatrix, rotateX(-20));
     gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix));
 
     // Draw the primitive / geometric shape
@@ -253,8 +276,7 @@ function recompute()
     textures = [];
     
     divideTetra(vertices[0], vertices[1], vertices[2], vertices[3], subdivNum);
-    divideCube(verticesbox[0], verticesbox[1], verticesbox[2], verticesbox[3], verticesbox[4], verticesbox[5], verticesbox[6], verticesbox[7], subdivNum);
-   
+    
     configWebGL();
     render();
 }
@@ -263,119 +285,214 @@ function recompute()
 function animUpdate()
 {
     // Stop the animation frame and return upon completing all sequences
-    if(iterTemp == iterNum)
-    {
-        window.cancelAnimationFrame(animFrame);
-        enableUI();
-        animFlag = false;
-        return; // break the self-repeating loop
-    }
+    // if(iterTemp == iterNum)
+    // {
+    //     window.cancelAnimationFrame(animFrame);
+    //     enableUI();
+    //     animFlag = false;
+    //     return; // break the self-repeating loop
+    // }
+    
 
     // Clear the color buffer and the depth buffer before rendering a new frame
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    // Speed factor adjustment for animations
-    let speedAdjustment = speedFactor * 1; // Multiply speedFactor by 0.1 for smooth scaling
+     // Speed factor adjustment for animations
+     let speedAdjustment = speedFactor * 1; // Multiply speedFactor by 0.1 for smooth scaling
 
     // Set the model view matrix for vertex transformation
     // Use translation to readjust the position of the primitive (if needed)
     modelViewMatrix = mat4();
     modelViewMatrix = mult(modelViewMatrix, translate(0, -0.2357, 0));
+    //modelViewMatrix = mult(modelViewMatrix, rotateX(-20));
+    modelViewMatrix = mult(modelViewMatrix, scale(0.2, 0.2, 1));
 
     // Switch case to handle the ongoing animation sequence
     // The animation is executed sequentially from case 0 to case n
-    
-    switch(animSeq)
-    {
-        case 0: // Animation 1
-            theta[2] += speedAdjustment;
+    if(iterTemp<iterNum){
+        switch(animSeq)
+        {
+            case 0: // Rotate 180deg Right
+                
+                theta[2] -= 1*speedAdjustment;
 
-            if(theta[2] >= 360)
-            {
-                theta[2] = 360;
-                animSeq++;
-            }
+                if(theta[2] <= -180)
+                {
+                    theta[2] = -180;
+                    animSeq++;
+                }
 
-            break;
+                break;
 
-        case 1: // Animation 2
-            theta[2] -= speedAdjustment;
+            case 1: // Rotate 180deg Left
+                theta[2] += 1*speedAdjustment;
 
-            if(theta[2] <= 0)
-            {
-                theta[2] = 0;
-                animSeq++;
-            }
+                if(theta[2] >= 0)
+                {
+                    theta[2] = 0;
+                    animSeq++;
+                }
 
-            break;
-
-        case 2: // Animation 3
-            scaleNum += speedAdjustment;
+                break;
             
-            if(scaleNum >= 4)
-            {
-                scaleNum = 4;
-                animSeq++;
-            }
+            case 2: // Rotate 180deg Left
+                theta[2] += 1*speedAdjustment;
 
-            break;
+                if(theta[2] >= 180)
+                {
+                    theta[2] = 180;
+                    animSeq++;
+                }
 
-        case 3: // Animation 4
-            scaleNum -= 0.02 * speedAdjustment;
+                break;
+            
+            case 3: // Rotate 180deg Right
+                theta[2] -=1*speedAdjustment;
 
-            if(scaleNum <= 1)
-            {
-                scaleNum = 1;
-                animSeq++;
-            }
+                if(theta[2] <= 0)
+                    {
+                        theta[2] = 0;
+                        animSeq++;
+                    }
+        
+                    break;
 
-            break;
+            case 4: // Scale Up
+                scaleNum += 0.02*speedAdjustment;
+                
+                if(scaleNum >= 2.5)
+                {
+                    scaleNum = 2.5;
+                    animSeq+=2;
+                }
 
-        case 4: // Animation 5
-            move[0] += 0.0125 * speedAdjustment;
-            move[1] += 0.005 * speedAdjustment;
+                break;
 
-            if(move[0] >= 3.0 && move[1] >= 1.2)
-            {
-                move[0] = 3.0;
-                move[1] = 1.2;
-                animSeq++;
-            }
-            break;
+            case 5: // Scale Down
+                scaleNum -= 0.01*speedAdjustment;
+                
 
-        case 5: // Animation 6
-            move[0] -= 0.0125 * speedAdjustment;
-            move[1] -= 0.005 * speedAdjustment;
+                if(scaleNum <= 0.5 )
+                {
+                    
+                    scaleNum = 0.5;
+                    animSeq++;
+                }
 
-            if(move[0] <= -3.0 && move[1] <= -1.2)
-            {
-                move[0] = -3.0;
-                move[1] = -1.2;
-                animSeq++;
-            }
-            break;
+                break;
 
-        case 6: // Animation 7
-            move[0] += 0.0125 * speedAdjustment; 
-            move[1] += 0.005 * speedAdjustment;
+            case 6: // Animation 5
+                move[0] += 0.0125*speedAdjustment;
+                move[1] += 0.005*speedAdjustment;
 
-            if(move[0] >= 0 && move[1] >= 0)
-            {
-                move[0] = 0;
-                move[1] = 0;
-                animSeq++;
-            }
-            break;
+                if(move[0] >= 3.0 && move[1] >= 1.2)
+                {
+                    move[0] = 3.0;
+                    move[1] = 1.2;
+                    animSeq++;
+                }
+                break;
 
-        default: // Reset animation sequence
-            animSeq = 0;
-            iterTemp++;
-            break;
+            case 7: // Animation 6
+                move[0] -= 0.0125*speedAdjustment;
+                move[1] -= 0.005*speedAdjustment;
+
+                if(move[0] <= -3.0 && move[1] <= -1.2)
+                {
+                    move[0] = -3.0;
+                    move[1] = -1.2;
+                    animSeq++;
+                }
+                break;
+
+            case 8: // Animation 7
+                if(spinAnim){
+                    move[0] += 0.0125*speedAdjustment;
+                    move[1] += 0.005*speedAdjustment;
+                    theta[1] += 0.3*speedAdjustment;
+                    // theta[0] += 1;
+                    if(move[0] >= 0 && move[1] >= 0 && theta[1] >= 360 )
+                        {
+                            move[0] = 0;
+                            move[1] = 0;
+                            theta[1] = 360;
+                            
+                            animSeq++;
+                        }
+                }
+                else{
+                    move[0] += 0.0125*speedAdjustment;
+                    move[1] += 0.005*speedAdjustment;
+                    if(move[0] >= 0 && move[1] >= 0)
+                    {
+                        move[0] = 0;
+                        move[1] = 0;
+                        animSeq++;
+                    }
+                }
+                
+                break;
+            
+            case 9: // Optional Spin Animation
+                if(spinAnim){
+                    theta[1] += 0.3*speedAdjustment;
+                    theta[0] += 0.3*speedAdjustment;
+
+                    if(theta[1] >= 360 && theta[0] >=360)
+                    {
+                        theta[1] = 360;
+                        theta[0] = 360;
+                        
+                        animSeq++;
+                    }
+                }
+                else
+                    animSeq++
+
+                break;
+            
+
+            default: // Reset animation sequence
+                animSeq = 0;
+                iterTemp++;
+                break;
+        }
+    }
+
+    if (iterTemp == iterNum) {
+        move[0] += 0.0125 * directionX * speedAdjustment; // Adjust movement based on direction
+        move[1] += 0.005 * directionY * speedAdjustment;
+    
+        // Reverse direction when hitting bounds
+        // if (move[0] >= 3.0 && move[1] >= 1.2) {
+        //     directionX = -1; // Start decreasing move[0]
+        //     directionY = -1;
+        // }
+        // if (move[0] <= -3.0 && move[1] <= -1.2) {
+        //     directionX = 1; // Start increasing move[0]
+        //     directionY = 1;
+        // }
+        if (move[0] >= 3.0) {
+            directionX = -1; // Start decreasing move[0]
+            
+        }
+        if (move[0] <= -3.0) {
+            directionX = 1; // Start increasing move[0]
+           
+        }
+        if (move[1] >= 1.2) {
+            directionY = -1; // Start decreasing move[1]
+        }
+        if (move[1] <= -1.2) {
+            directionY = 1; // Start increasing move[1]
+        }
     }
 
     // Perform vertex transformation
-    modelViewMatrix = mat4();
+    modelViewMatrix = mult(modelViewMatrix, rotateX(theta[0]));
+    modelViewMatrix = mult(modelViewMatrix, rotateY(theta[1]));
     modelViewMatrix = mult(modelViewMatrix, rotateZ(theta[2]));
+
     modelViewMatrix = mult(modelViewMatrix, scale(scaleNum, scaleNum, 1));
     modelViewMatrix = mult(modelViewMatrix, translate(move[0], move[1], move[2]));
 
@@ -389,6 +506,7 @@ function animUpdate()
     animFrame = window.requestAnimationFrame(animUpdate);
 }
 
+
 // Disable the UI elements when the animation is ongoing
 function disableUI()
 {
@@ -398,7 +516,7 @@ function disableUI()
     checkTex1.disabled = true;
     checkTex2.disabled = true;
     checkTex3.disabled = true;
-    startBtn.disabled = true;
+    //startBtn.disabled = true;
 }
 
 // Enable the UI elements after the animation is completed
@@ -410,7 +528,7 @@ function enableUI()
     checkTex1.disabled = false;
     checkTex2.disabled = false;
     checkTex3.disabled = false;
-    startBtn.disabled = false;
+    //startBtn.disabled = false;
 }
 
 // Reset all necessary variables to their default values
@@ -509,73 +627,23 @@ function divideTetra(a, b, c, d, count)
 
 /*-----------------------------------------------------------------------------------*/
 
+function animateGasket() {
+    // // Clear the screen
+    // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-// Vertices for a Cube (box)
-var verticesbox = [
-    vec4(-1.0, -1.0, -1.0, 1.0),  // 0
-    vec4( 1.0, -1.0, -1.0, 1.0),  // 1
-    vec4( 1.0,  1.0, -1.0, 1.0),  // 2
-    vec4(-1.0,  1.0, -1.0, 1.0),  // 3
-    vec4(-1.0, -1.0,  1.0, 1.0),  // 4
-    vec4( 1.0, -1.0,  1.0, 1.0),  // 5
-    vec4( 1.0,  1.0,  1.0, 1.0),  // 6
-    vec4(-1.0,  1.0,  1.0, 1.0)   // 7
-];
-// Form a square face (split into 2 triangles)
-function square(a, b, c, d, color)
-{
-    // First triangle
-    triangle(a, b, c, color);
-    // Second triangle
-    triangle(a, c, d, color);
-}
-
-// Create the cube by defining 6 faces
-function cube(a, b, c, d, e, f, g, h)
-{
-    // Front face
-    square(a, b, c, d, 0);
-    // Back face
-    square(e, f, g, h, 1);
-    // Left face
-    square(a, d, h, e, 2);
-    // Right face
-    square(b, c, g, f, 3);
-    // Top face
-    square(d, c, g, h, 4);
-    // Bottom face
-    square(a, b, f, e, 5);
-}
-// Subdivide a cube face
-function divideSquare(a, b, c, d, count)
-{
-    if (count === 0) {
-        square(a, b, c, d, 0);  // Default color
+    // Update depth for animation
+    if (increasing) {
+        depth += 0.02; // Slowly increase depth
+        if (depth >= subdivNum) increasing = false; // Start disintegration
     } else {
-        // Calculate midpoints of the square sides
-        var ab = mix(a, b, 0.5);
-        var bc = mix(b, c, 0.5);
-        var cd = mix(c, d, 0.5);
-        var da = mix(d, a, 0.5);
-        var center = mix(ab, cd, 0.5);
-
-        --count;
-
-        // Recursively subdivide each of the 4 smaller squares
-        divideSquare(a, ab, center, da, count);
-        divideSquare(ab, b, bc, center, count);
-        divideSquare(center, bc, c, cd, count);
-        divideSquare(da, center, cd, d, count);
+        depth -= 0.02; // Slowly decrease depth
+        if (depth <= 0) increasing = true; // Start reveal again
     }
-}
 
-// Subdivide the entire cube
-function divideCube(a, b, c, d, e, f, g, h, count)
-{
-    divideSquare(a, b, c, d, count);  // Front face
-    divideSquare(e, f, g, h, count);  // Back face
-    divideSquare(a, d, h, e, count);  // Left face
-    divideSquare(b, c, g, f, count);  // Right face
-    divideSquare(d, c, g, h, count);  // Top face
-    divideSquare(a, b, f, e, count);  // Bottom face
+    // Render the Sierpiński Gasket with current depth
+    divideTetra(vertices[0], vertices[1], vertices[2], vertices[3],
+               Math.floor(depth)); // Pass integer depth
+
+    // // Request the next frame
+    // requestAnimationFrame(animateGasket);
 }
