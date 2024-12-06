@@ -13,7 +13,7 @@ var modelViewMatrix, projectionMatrix, texture;
 var subdivSlider, subdivText, iterSlider, iterText, startBtn;
 var checkTex1, checkTex2, checkTex3, tex1, tex2, tex3;
 var theta = [0, 0, 0], move = [0, 0, 0];
-var subdivNum = 3, iterNum = 1, scaleNum = 1;
+var subdivNum = 1, iterNum = 1, scaleNum = 1;
 var iterTemp = 0, animSeq = 0, animFrame = 0, animFlag = false;
 var speedFactor =1;
 
@@ -41,10 +41,10 @@ var vertices = [
 
 // Different colors for a tetrahedron (RGBA)
 var baseColors = [
-    vec4(1.0, 0.2, 0.4, 1.0),
-    vec4(0.0, 0.9, 1.0, 1.0),
-    vec4(0.2, 0.2, 0.5, 1.0),
-    vec4(0.0, 0.0, 0.0, 1.0)
+    vec4(1.0, 0.4, 0.07, 1.0),
+    vec4(1.0, 0.9, 0.8, 1.0),
+    vec4(0.5, 0.0, 0.0, 1.0),
+    vec4(0.0, 0.0, 0.4, 1.0),
 ];
 
 
@@ -155,6 +155,7 @@ function getUIElement()
             disableUI();
             resetValue();
             animUpdate();
+            startBtn.value = "Stop Animation"; // Change button text to "Stop Animation"
         }
         else{
             animFlag = false;
@@ -163,6 +164,7 @@ function getUIElement()
             recompute();
             enableUI();
             resetValue();
+            startBtn.value = "Start Animation"; // Change button text back to "Start Animation"
         }
 		
 	};
