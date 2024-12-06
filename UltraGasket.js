@@ -156,6 +156,7 @@ function getUIElement()
             resetValue();
             animUpdate();
             startBtn.value = "Stop Animation"; // Change button text to "Stop Animation"
+            startBtn.classList.add("stop"); // Add the stop class for styling
         }
         else{
             animFlag = false;
@@ -165,6 +166,7 @@ function getUIElement()
             enableUI();
             resetValue();
             startBtn.value = "Start Animation"; // Change button text back to "Start Animation"
+            startBtn.classList.remove("stop"); // Remove the stop class
         }
 		
 	};

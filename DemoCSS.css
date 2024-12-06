@@ -93,10 +93,12 @@ body {
     color: #000000;
 }
 
+/*Making sure min range is the left side of the slider*/
 .range-min {
     left: 0;
 }
 
+/*Making sure max range is the right side of the slider*/
 .range-max {
     right: 0;
 }
@@ -179,8 +181,25 @@ input.slide::-moz-range-thumb {
 }
 
 #start-btn:hover {
-    background: #ffea00;
+    background: #fffb00;
     transform: scale(1.05);
+}
+
+/* Stop Animation button state */
+#start-btn.stop {
+    background: #ff6347; /* Stop Animation background */
+    color: #ffffff;
+}
+
+/* Hover effect for Stop Animation */
+#start-btn.stop:hover {
+    background: #ff7f50;
+    transform: scale(1.05);
+}
+
+.small-image {
+    width: 230px;
+    height: 200px;
 }
 
 /* Adjust spacing for responsiveness if needed */
