@@ -394,6 +394,7 @@ function disableUI()
 {
     subdivSlider.disabled = true;
     iterSlider.disabled = true;
+    document.getElementById("speed-slider").disabled = true; 
     checkTex1.disabled = true;
     checkTex2.disabled = true;
     checkTex3.disabled = true;
@@ -405,6 +406,7 @@ function enableUI()
 {
     subdivSlider.disabled = false;
     iterSlider.disabled = false;
+    document.getElementById("speed-slider").disabled = false; // Enable speed slider
     checkTex1.disabled = false;
     checkTex2.disabled = false;
     checkTex3.disabled = false;
