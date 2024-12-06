@@ -15,6 +15,8 @@ var checkTex1, checkTex2, checkTex3, tex1, tex2, tex3;
 var theta = [0, 0, 0], move = [0, 0, 0];
 var subdivNum = 3, iterNum = 1, scaleNum = 1;
 var iterTemp = 0, animSeq = 0, animFrame = 0, animFlag = false;
+var speedFactor =1;
+
 
 // Variables for the 3D Sierpinski gasket
 var points = [], colors = [], textures = [];
@@ -79,6 +81,8 @@ function getUIElement()
     subdivText = document.getElementById("subdiv-text");
     iterSlider = document.getElementById("iter-slider");
     iterText = document.getElementById("iter-text");
+    let speedSlider = document.getElementById("speed-slider");
+    let speedtext = document.getElementById("speed-text");
     checkTex1 = document.getElementById("check-texture-1");
     checkTex2 = document.getElementById("check-texture-2");
     checkTex3 = document.getElementById("check-texture-3");
@@ -99,6 +103,24 @@ function getUIElement()
 		iterNum = event.target.value;
 		iterText.innerHTML = iterNum;
         recompute();
+    };
+
+    speedSlider.onchange= function(event)
+    {
+        let sliderValue = parseInt(event.target.value);
+        //speedFactor = Math.pow(1.25, sliderValue - 5);
+        //speedtext.innerHTML = sliderValue;
+        console.log("Speed Factor: " + speedFactor);
+        speedFactor = event.target.value;
+        speedtext.innerHTML= speedFactor;
+    };
+
+    document.getElementById("start-btn").onclick=function()
+    {
+        animFlag = true;
+        disableUI();
+        resetValue();
+        animUpdate();
     };
 
     checkTex1.onchange = function() 
@@ -136,6 +158,7 @@ function getUIElement()
         animUpdate();
 	};
 }
+
 
 // Configure WebGL Settings
 function configWebGL()
@@ -251,6 +274,9 @@ function animUpdate()
     // Clear the color buffer and the depth buffer before rendering a new frame
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+    // Speed factor adjustment for animations
+    let speedAdjustment = speedFactor * 1; // Multiply speedFactor by 0.1 for smooth scaling
+
     // Set the model view matrix for vertex transformation
     // Use translation to readjust the position of the primitive (if needed)
     modelViewMatrix = mat4();
@@ -258,10 +284,11 @@ function animUpdate()
 
     // Switch case to handle the ongoing animation sequence
     // The animation is executed sequentially from case 0 to case n
+    
     switch(animSeq)
     {
         case 0: // Animation 1
-            theta[2] += 1;
+            theta[2] += speedAdjustment;
 
             if(theta[2] >= 360)
             {
@@ -272,7 +299,7 @@ function animUpdate()
             break;
 
         case 1: // Animation 2
-            theta[2] -= 1;
+            theta[2] -= speedAdjustment;
 
             if(theta[2] <= 0)
             {
@@ -283,7 +310,7 @@ function animUpdate()
             break;
 
         case 2: // Animation 3
-            scaleNum += 0.02;
+            scaleNum += speedAdjustment;
             
             if(scaleNum >= 4)
             {
@@ -294,7 +321,7 @@ function animUpdate()
             break;
 
         case 3: // Animation 4
-            scaleNum -= 0.02;
+            scaleNum -= 0.02 * speedAdjustment;
 
             if(scaleNum <= 1)
             {
@@ -305,8 +332,8 @@ function animUpdate()
             break;
 
         case 4: // Animation 5
-            move[0] += 0.0125;
-            move[1] += 0.005;
+            move[0] += 0.0125 * speedAdjustment;
+            move[1] += 0.005 * speedAdjustment;
 
             if(move[0] >= 3.0 && move[1] >= 1.2)
             {
@@ -317,8 +344,8 @@ function animUpdate()
             break;
 
         case 5: // Animation 6
-            move[0] -= 0.0125;
-            move[1] -= 0.005;
+            move[0] -= 0.0125 * speedAdjustment;
+            move[1] -= 0.005 * speedAdjustment;
 
             if(move[0] <= -3.0 && move[1] <= -1.2)
             {
@@ -329,8 +356,8 @@ function animUpdate()
             break;
 
         case 6: // Animation 7
-            move[0] += 0.0125;
-            move[1] += 0.005;
+            move[0] += 0.0125 * speedAdjustment; 
+            move[1] += 0.005 * speedAdjustment;
 
             if(move[0] >= 0 && move[1] >= 0)
             {
@@ -347,6 +374,7 @@ function animUpdate()
     }
 
     // Perform vertex transformation
+    modelViewMatrix = mat4();
     modelViewMatrix = mult(modelViewMatrix, rotateZ(theta[2]));
     modelViewMatrix = mult(modelViewMatrix, scale(scaleNum, scaleNum, 1));
     modelViewMatrix = mult(modelViewMatrix, translate(move[0], move[1], move[2]));
