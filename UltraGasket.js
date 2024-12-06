@@ -15,14 +15,11 @@ var checkTex1, checkTex2, checkTex3, tex1, tex2, tex3;
 var theta = [0, 0, 0], move = [0, 0, 0];
 var subdivNum = 3, iterNum = 1, scaleNum = 1;
 var iterTemp = 0, animSeq = 0, animFrame = 0, animFlag = false;
+var speedFactor =1;
+
 
 // Variables for the 3D Sierpinski gasket
 var points = [], colors = [], textures = [];
-
-// Variables used for animations
-let depth = 0; // Current recursion depth
-const maxDepth = subdivNum; // Maximum recursion depth for the gasket
-
 
 // Vertices for the 3D Sierpinski gasket (X-axis, Y-axis, Z-axis, W)
 // For 3D, you need to set the z-axis to create the perception of depth
@@ -32,7 +29,8 @@ var vertices = [
     vec4(-0.8165 * 2, -0.4714 * 2,  0.3333 * 2, 1.0000),
     vec4( 0.8165 * 2, -0.4714 * 2,  0.3333 * 2, 1.0000)
 ];
-
+var verticesright = translateVertices(vertices,+10)
+var verticesleft = translateVertices(vertices,-10)
 // Different colors for a tetrahedron (RGBA)
 var baseColors = [
     vec4(1.0, 0.2, 0.4, 1.0),
@@ -41,7 +39,11 @@ var baseColors = [
     vec4(0.0, 0.0, 0.0, 1.0)
 ];
 
-
+function translateVertices(vertices, xOffset) {
+    return vertices.map(function(vertex) {
+        return vec4(vertex[0] + xOffset, vertex[1], vertex[2], vertex[3]);
+    });
+}
 // Define texture coordinates for texture mapping onto a shape or surface
 var texCoord = 
 [
@@ -60,8 +62,10 @@ window.onload = function init()
 {
     // Primitive (geometric shape) initialization
     divideTetra(vertices[0], vertices[1], vertices[2], vertices[3], subdivNum);
-
-
+    divideTetra(verticesright[0], verticesright[1], verticesright[2], verticesright[3], subdivNum);
+    divideTetra(verticesleft[0], verticesleft[1], verticesleft[2], verticesleft[3], subdivNum);
+    divideCube(verticesbox[0], verticesbox[1], verticesbox[2], verticesbox[3], verticesbox[4], verticesbox[5], verticesbox[6], verticesbox[7], subdivNum);
+    
     // WebGL setups
     getUIElement();
     configWebGL();
@@ -77,6 +81,8 @@ function getUIElement()
     subdivText = document.getElementById("subdiv-text");
     iterSlider = document.getElementById("iter-slider");
     iterText = document.getElementById("iter-text");
+    let speedSlider = document.getElementById("speed-slider");
+    let speedtext = document.getElementById("speed-text");
     checkTex1 = document.getElementById("check-texture-1");
     checkTex2 = document.getElementById("check-texture-2");
     checkTex3 = document.getElementById("check-texture-3");
@@ -97,6 +103,24 @@ function getUIElement()
 		iterNum = event.target.value;
 		iterText.innerHTML = iterNum;
         recompute();
+    };
+
+    speedSlider.onchange= function(event)
+    {
+        let sliderValue = parseInt(event.target.value);
+        //speedFactor = Math.pow(1.25, sliderValue - 5);
+        //speedtext.innerHTML = sliderValue;
+        console.log("Speed Factor: " + speedFactor);
+        speedFactor = event.target.value;
+        speedtext.innerHTML= speedFactor;
+    };
+
+    document.getElementById("start-btn").onclick=function()
+    {
+        animFlag = true;
+        disableUI();
+        resetValue();
+        animUpdate();
     };
 
     checkTex1.onchange = function() 
@@ -134,6 +158,7 @@ function getUIElement()
         animUpdate();
 	};
 }
+
 
 // Configure WebGL Settings
 function configWebGL()
@@ -213,8 +238,6 @@ function render()
     // Use translation to readjust the position of the primitive (if needed)
     modelViewMatrix = mat4();
     modelViewMatrix = mult(modelViewMatrix, translate(0, -0.2357, 0));
-    modelViewMatrix = mult(modelViewMatrix, scale(0.2, 0.2, 1));
-    //modelViewMatrix = mult(modelViewMatrix, rotateX(-20));
     gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix));
 
     // Draw the primitive / geometric shape
@@ -230,7 +253,8 @@ function recompute()
     textures = [];
     
     divideTetra(vertices[0], vertices[1], vertices[2], vertices[3], subdivNum);
-    
+    divideCube(verticesbox[0], verticesbox[1], verticesbox[2], verticesbox[3], verticesbox[4], verticesbox[5], verticesbox[6], verticesbox[7], subdivNum);
+   
     configWebGL();
     render();
 }
@@ -250,89 +274,66 @@ function animUpdate()
     // Clear the color buffer and the depth buffer before rendering a new frame
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+    // Speed factor adjustment for animations
+    let speedAdjustment = speedFactor * 1; // Multiply speedFactor by 0.1 for smooth scaling
+
     // Set the model view matrix for vertex transformation
     // Use translation to readjust the position of the primitive (if needed)
     modelViewMatrix = mat4();
     modelViewMatrix = mult(modelViewMatrix, translate(0, -0.2357, 0));
-    //modelViewMatrix = mult(modelViewMatrix, rotateX(-20));
-    modelViewMatrix = mult(modelViewMatrix, scale(0.2, 0.2, 1));
 
     // Switch case to handle the ongoing animation sequence
     // The animation is executed sequentially from case 0 to case n
+    
     switch(animSeq)
     {
-        case 0: // Rotate 180deg Right
-            
-            theta[2] -= 1;
+        case 0: // Animation 1
+            theta[2] += speedAdjustment;
 
-            if(theta[2] <= -180)
+            if(theta[2] >= 360)
             {
-                theta[2] = -180;
+                theta[2] = 360;
                 animSeq++;
             }
 
             break;
 
-        case 1: // Rotate 180deg Left
-            theta[2] += 1;
+        case 1: // Animation 2
+            theta[2] -= speedAdjustment;
 
-            if(theta[2] >= 0)
+            if(theta[2] <= 0)
             {
                 theta[2] = 0;
                 animSeq++;
             }
 
             break;
-        
-        case 2: // Rotate 180deg Left
-            theta[2] += 1;
 
-            if(theta[2] >= 180)
-            {
-                theta[2] = 180;
-                animSeq++;
-            }
-
-            break;
-        
-        case 3: // Rotate 180deg Right
-            theta[2] -=1;
-
-            if(theta[2] <= 0)
-                {
-                    theta[2] = 0;
-                    animSeq++;
-                }
-    
-                break;
-
-        case 4: // Scale Up
-            scaleNum += 0.02;
+        case 2: // Animation 3
+            scaleNum += speedAdjustment;
             
-            if(scaleNum >= 2.5)
+            if(scaleNum >= 4)
             {
-                scaleNum = 2.5;
-                animSeq+=2;
-            }
-
-            break;
-
-        case 5: // Scale Down
-            scaleNum -= 0.01;
-            
-
-            if(scaleNum <= 0.5 )
-            {
-                
-                scaleNum = 0.5;
+                scaleNum = 4;
                 animSeq++;
             }
 
             break;
 
-        case 6: // Animation 5
-            move[0] += 0.0125;
-            move[1] += 0.005;
+        case 3: // Animation 4
+            scaleNum -= 0.02 * speedAdjustment;
+
+            if(scaleNum <= 1)
+            {
+                scaleNum = 1;
+                animSeq++;
+            }
+
+            break;
+
+        case 4: // Animation 5
+            move[0] += 0.0125 * speedAdjustment;
+            move[1] += 0.005 * speedAdjustment;
 
             if(move[0] >= 3.0 && move[1] >= 1.2)
             {
@@ -342,9 +343,9 @@ function animUpdate()
             }
             break;
 
-        case 7: // Animation 6
-            move[0] -= 0.0125;
-            move[1] -= 0.005;
+        case 5: // Animation 6
+            move[0] -= 0.0125 * speedAdjustment;
+            move[1] -= 0.005 * speedAdjustment;
 
             if(move[0] <= -3.0 && move[1] <= -1.2)
             {
@@ -354,9 +355,9 @@ function animUpdate()
             }
             break;
 
-        case 8: // Animation 7
-            move[0] += 0.0125;
-            move[1] += 0.005;
+        case 6: // Animation 7
+            move[0] += 0.0125 * speedAdjustment; 
+            move[1] += 0.005 * speedAdjustment;
 
             if(move[0] >= 0 && move[1] >= 0)
             {
@@ -373,10 +374,8 @@ function animUpdate()
     }
 
     // Perform vertex transformation
-    modelViewMatrix = mult(modelViewMatrix, rotateX(theta[0]));
-    modelViewMatrix = mult(modelViewMatrix, rotateY(theta[1]));
+    modelViewMatrix = mat4();
     modelViewMatrix = mult(modelViewMatrix, rotateZ(theta[2]));
-
     modelViewMatrix = mult(modelViewMatrix, scale(scaleNum, scaleNum, 1));
     modelViewMatrix = mult(modelViewMatrix, translate(move[0], move[1], move[2]));
 
@@ -390,12 +389,12 @@ function animUpdate()
     animFrame = window.requestAnimationFrame(animUpdate);
 }
 
-
 // Disable the UI elements when the animation is ongoing
 function disableUI()
 {
     subdivSlider.disabled = true;
     iterSlider.disabled = true;
+    document.getElementById("speed-slider").disabled = true; 
     checkTex1.disabled = true;
     checkTex2.disabled = true;
     checkTex3.disabled = true;
@@ -407,6 +406,7 @@ function enableUI()
 {
     subdivSlider.disabled = false;
     iterSlider.disabled = false;
+    document.getElementById("speed-slider").disabled = false; // Enable speed slider
     checkTex1.disabled = false;
     checkTex2.disabled = false;
     checkTex3.disabled = false;
@@ -509,23 +509,73 @@ function divideTetra(a, b, c, d, count)
 
 /*-----------------------------------------------------------------------------------*/
 
-function animateGasket() {
-    // // Clear the screen
-    // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    // Update depth for animation
-    if (increasing) {
-        depth += 0.02; // Slowly increase depth
-        if (depth >= subdivNum) increasing = false; // Start disintegration
+// Vertices for a Cube (box)
+var verticesbox = [
+    vec4(-1.0, -1.0, -1.0, 1.0),  // 0
+    vec4( 1.0, -1.0, -1.0, 1.0),  // 1
+    vec4( 1.0,  1.0, -1.0, 1.0),  // 2
+    vec4(-1.0,  1.0, -1.0, 1.0),  // 3
+    vec4(-1.0, -1.0,  1.0, 1.0),  // 4
+    vec4( 1.0, -1.0,  1.0, 1.0),  // 5
+    vec4( 1.0,  1.0,  1.0, 1.0),  // 6
+    vec4(-1.0,  1.0,  1.0, 1.0)   // 7
+];
+// Form a square face (split into 2 triangles)
+function square(a, b, c, d, color)
+{
+    // First triangle
+    triangle(a, b, c, color);
+    // Second triangle
+    triangle(a, c, d, color);
+}
+
+// Create the cube by defining 6 faces
+function cube(a, b, c, d, e, f, g, h)
+{
+    // Front face
+    square(a, b, c, d, 0);
+    // Back face
+    square(e, f, g, h, 1);
+    // Left face
+    square(a, d, h, e, 2);
+    // Right face
+    square(b, c, g, f, 3);
+    // Top face
+    square(d, c, g, h, 4);
+    // Bottom face
+    square(a, b, f, e, 5);
+}
+// Subdivide a cube face
+function divideSquare(a, b, c, d, count)
+{
+    if (count === 0) {
+        square(a, b, c, d, 0);  // Default color
     } else {
-        depth -= 0.02; // Slowly decrease depth
-        if (depth <= 0) increasing = true; // Start reveal again
+        // Calculate midpoints of the square sides
+        var ab = mix(a, b, 0.5);
+        var bc = mix(b, c, 0.5);
+        var cd = mix(c, d, 0.5);
+        var da = mix(d, a, 0.5);
+        var center = mix(ab, cd, 0.5);
+
+        --count;
+
+        // Recursively subdivide each of the 4 smaller squares
+        divideSquare(a, ab, center, da, count);
+        divideSquare(ab, b, bc, center, count);
+        divideSquare(center, bc, c, cd, count);
+        divideSquare(da, center, cd, d, count);
     }
+}
 
-    // Render the Sierpiński Gasket with current depth
-    divideTetra(vertices[0], vertices[1], vertices[2], vertices[3],
-               Math.floor(depth)); // Pass integer depth
-
-    // // Request the next frame
-    // requestAnimationFrame(animateGasket);
+// Subdivide the entire cube
+function divideCube(a, b, c, d, e, f, g, h, count)
+{
+    divideSquare(a, b, c, d, count);  // Front face
+    divideSquare(e, f, g, h, count);  // Back face
+    divideSquare(a, d, h, e, count);  // Left face
+    divideSquare(b, c, g, f, count);  // Right face
+    divideSquare(d, c, g, h, count);  // Top face
+    divideSquare(a, b, f, e, count);  // Bottom face
 }
