@@ -18,13 +18,13 @@ body {
 .canvas {
     margin: 20px;
     text-align: center;
-    border: 3px solid #8f94fb;
+    border: 3px solid #171c6a;
     border-radius: 10px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    width: 65%; /* Give it a percentage width */
-    max-width: 80%;
-    height: 100%;
+    width: 100%; 
+    max-width: 100%;
     background: url('https://i.postimg.cc/kMKrJd9B/BG001.jpg') center/cover no-repeat;
+	opacity: 90%;
     /* For a gradient instead: */
     /* background: linear-gradient(135deg, #3b4371, #f3904f); */
 }
@@ -41,13 +41,12 @@ body {
     background: linear-gradient(135deg, #4ec8c4, #6cffbf);
     border-radius: 15px;
     padding: 20px;
-    max-width: 30%; /* Adjust to 30% width */
+	width: 20%;
     margin: 20px;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
     display: flex;
     flex-direction: column;
     gap: 15px;
-    height: 100%; /* Set height to 100% to match canvas height */
 }
 
 /* Parameter panel layout */
