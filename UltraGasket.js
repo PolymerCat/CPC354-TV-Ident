@@ -22,7 +22,12 @@ var points = [], colors = [], textures = [];
 // Variables used for animations
 let depth = 0; // Current recursion depth
 const maxDepth = subdivNum; // Maximum recursion depth for the gasket
-
+let spinAnim = false;
+let colorAnim = false;
+let bothAnim = false;
+let reset_anim = false;
+let directionX = 1; // 1 means increasing, -1 means decreasing
+let directionY = 1; // 1 means increasing, -1 means decreasing
 
 // Vertices for the 3D Sierpinski gasket (X-axis, Y-axis, Z-axis, W)
 // For 3D, you need to set the z-axis to create the perception of depth
@@ -85,6 +90,10 @@ function getUIElement()
     tex3 = document.getElementById("texture-3");
     startBtn = document.getElementById("start-btn");
 
+    animSpin = document.getElementById("check-enable-spin")
+    animColor = document.getElementById("check-enable-color")
+    animBoth = document.getElementById("check-spin-color")
+
     subdivSlider.onchange = function(event) 
 	{
 		subdivNum = event.target.value;
@@ -128,11 +137,35 @@ function getUIElement()
 
     startBtn.onclick = function()
 	{
-		animFlag = true;
-        disableUI();
-        resetValue();
-        animUpdate();
+        if(!animFlag){
+            animFlag = true;
+            disableUI();
+            resetValue();
+            animUpdate();
+        }
+        else{
+            animFlag = false;
+            iterTemp = iterNum;
+            window.cancelAnimationFrame(animFrame);
+            recompute();
+            enableUI();
+            resetValue();
+        }
+		
 	};
+
+    animSpin.onchange = function(){
+        if(animSpin.checked){
+            spinAnim=true;
+            recompute();
+        }
+        else{
+            spinAnim=false;
+            recompute();
+        }
+            
+    }
+
 }
 
 // Configure WebGL Settings
@@ -206,7 +239,7 @@ function render()
 
     // Pass a 4x4 projection matrix from JavaScript to the GPU for use in shader
     // ortho(left, right, bottom, top, near, far)
-    projectionMatrix = ortho(-4, 4, -2.25, 2.25, 2, -2);
+    projectionMatrix = ortho(-4, 4, -2.25, 2.25, 2, -15);
 	gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix));
 
     // Pass a 4x4 model view matrix from JavaScript to the GPU for use in shader
@@ -239,13 +272,14 @@ function recompute()
 function animUpdate()
 {
     // Stop the animation frame and return upon completing all sequences
-    if(iterTemp == iterNum)
-    {
-        window.cancelAnimationFrame(animFrame);
-        enableUI();
-        animFlag = false;
-        return; // break the self-repeating loop
-    }
+    // if(iterTemp == iterNum)
+    // {
+    //     window.cancelAnimationFrame(animFrame);
+    //     enableUI();
+    //     animFlag = false;
+    //     return; // break the self-repeating loop
+    // }
+    
 
     // Clear the color buffer and the depth buffer before rendering a new frame
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -259,117 +293,183 @@ function animUpdate()
 
     // Switch case to handle the ongoing animation sequence
     // The animation is executed sequentially from case 0 to case n
-    switch(animSeq)
-    {
-        case 0: // Rotate 180deg Right
-            
-            theta[2] -= 1;
+    if(iterTemp<iterNum){
+            switch(animSeq)
+        {
+            case 0: // Rotate 180deg Right
+                
+                theta[2] -= 1;
 
-            if(theta[2] <= -180)
-            {
-                theta[2] = -180;
-                animSeq++;
-            }
+                if(theta[2] <= -180)
+                {
+                    theta[2] = -180;
+                    animSeq++;
+                }
 
-            break;
+                break;
 
-        case 1: // Rotate 180deg Left
-            theta[2] += 1;
+            case 1: // Rotate 180deg Left
+                theta[2] += 1;
 
-            if(theta[2] >= 0)
-            {
-                theta[2] = 0;
-                animSeq++;
-            }
-
-            break;
-        
-        case 2: // Rotate 180deg Left
-            theta[2] += 1;
-
-            if(theta[2] >= 180)
-            {
-                theta[2] = 180;
-                animSeq++;
-            }
-
-            break;
-        
-        case 3: // Rotate 180deg Right
-            theta[2] -=1;
-
-            if(theta[2] <= 0)
+                if(theta[2] >= 0)
                 {
                     theta[2] = 0;
                     animSeq++;
                 }
-    
+
+                break;
+            
+            case 2: // Rotate 180deg Left
+                theta[2] += 1;
+
+                if(theta[2] >= 180)
+                {
+                    theta[2] = 180;
+                    animSeq++;
+                }
+
+                break;
+            
+            case 3: // Rotate 180deg Right
+                theta[2] -=1;
+
+                if(theta[2] <= 0)
+                    {
+                        theta[2] = 0;
+                        animSeq++;
+                    }
+        
+                    break;
+
+            case 4: // Scale Up
+                scaleNum += 0.02;
+                
+                if(scaleNum >= 2.5)
+                {
+                    scaleNum = 2.5;
+                    animSeq+=2;
+                }
+
                 break;
 
-        case 4: // Scale Up
-            scaleNum += 0.02;
-            
-            if(scaleNum >= 2.5)
-            {
-                scaleNum = 2.5;
-                animSeq+=2;
-            }
-
-            break;
-
-        case 5: // Scale Down
-            scaleNum -= 0.01;
-            
-
-            if(scaleNum <= 0.5 )
-            {
+            case 5: // Scale Down
+                scaleNum -= 0.01;
                 
-                scaleNum = 0.5;
-                animSeq++;
-            }
 
-            break;
+                if(scaleNum <= 0.5 )
+                {
+                    
+                    scaleNum = 0.5;
+                    animSeq++;
+                }
 
-        case 6: // Animation 5
-            move[0] += 0.0125;
-            move[1] += 0.005;
+                break;
 
-            if(move[0] >= 3.0 && move[1] >= 1.2)
-            {
-                move[0] = 3.0;
-                move[1] = 1.2;
-                animSeq++;
-            }
-            break;
+            case 6: // Animation 5
+                move[0] += 0.0125;
+                move[1] += 0.005;
 
-        case 7: // Animation 6
-            move[0] -= 0.0125;
-            move[1] -= 0.005;
+                if(move[0] >= 3.0 && move[1] >= 1.2)
+                {
+                    move[0] = 3.0;
+                    move[1] = 1.2;
+                    animSeq++;
+                }
+                break;
 
-            if(move[0] <= -3.0 && move[1] <= -1.2)
-            {
-                move[0] = -3.0;
-                move[1] = -1.2;
-                animSeq++;
-            }
-            break;
+            case 7: // Animation 6
+                move[0] -= 0.0125;
+                move[1] -= 0.005;
 
-        case 8: // Animation 7
-            move[0] += 0.0125;
-            move[1] += 0.005;
+                if(move[0] <= -3.0 && move[1] <= -1.2)
+                {
+                    move[0] = -3.0;
+                    move[1] = -1.2;
+                    animSeq++;
+                }
+                break;
 
-            if(move[0] >= 0 && move[1] >= 0)
-            {
-                move[0] = 0;
-                move[1] = 0;
-                animSeq++;
-            }
-            break;
+            case 8: // Animation 7
+                if(spinAnim){
+                    move[0] += 0.0125;
+                    move[1] += 0.005;
+                    theta[1] += 1;
+                    // theta[0] += 1;
+                    if(move[0] >= 0 && move[1] >= 0 && theta[1] >= 360 )
+                        {
+                            move[0] = 0;
+                            move[1] = 0;
+                            theta[1] = 360;
+                            
+                            animSeq++;
+                        }
+                }
+                else{
+                    move[0] += 0.0125;
+                    move[1] += 0.005;
+                    if(move[0] >= 0 && move[1] >= 0)
+                    {
+                        move[0] = 0;
+                        move[1] = 0;
+                        animSeq++;
+                    }
+                }
+                
+                break;
+            
+            case 9: // Optional Spin Animation
+                if(spinAnim){
+                    theta[1] += 1;
+                    theta[0] += 1;
 
-        default: // Reset animation sequence
-            animSeq = 0;
-            iterTemp++;
-            break;
+                    if(theta[1] >= 360 && theta[0] >=360)
+                    {
+                        theta[1] = 360;
+                        theta[0] = 360;
+                        
+                        animSeq++;
+                    }
+                }
+                else
+                    animSeq++
+
+                break;
+            
+
+            default: // Reset animation sequence
+                animSeq = 0;
+                iterTemp++;
+                break;
+        }
+    }
+
+    if (iterTemp == iterNum) {
+        move[0] += 0.0125 * directionX; // Adjust movement based on direction
+        move[1] += 0.005 * directionY;
+    
+        // Reverse direction when hitting bounds
+        // if (move[0] >= 3.0 && move[1] >= 1.2) {
+        //     directionX = -1; // Start decreasing move[0]
+        //     directionY = -1;
+        // }
+        // if (move[0] <= -3.0 && move[1] <= -1.2) {
+        //     directionX = 1; // Start increasing move[0]
+        //     directionY = 1;
+        // }
+        if (move[0] >= 3.0) {
+            directionX = -1; // Start decreasing move[0]
+            
+        }
+        if (move[0] <= -3.0) {
+            directionX = 1; // Start increasing move[0]
+           
+        }
+        if (move[1] >= 1.2) {
+            directionY = -1; // Start decreasing move[1]
+        }
+        if (move[1] <= -1.2) {
+            directionY = 1; // Start increasing move[1]
+        }
     }
 
     // Perform vertex transformation
@@ -399,7 +499,7 @@ function disableUI()
     checkTex1.disabled = true;
     checkTex2.disabled = true;
     checkTex3.disabled = true;
-    startBtn.disabled = true;
+    //startBtn.disabled = true;
 }
 
 // Enable the UI elements after the animation is completed
@@ -410,7 +510,7 @@ function enableUI()
     checkTex1.disabled = false;
     checkTex2.disabled = false;
     checkTex3.disabled = false;
-    startBtn.disabled = false;
+    //startBtn.disabled = false;
 }
 
 // Reset all necessary variables to their default values
