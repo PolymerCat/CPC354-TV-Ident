@@ -6,7 +6,6 @@ body {
     font-family: Arial, sans-serif;
 	background: url('https://img.freepik.com/free-vector/gradient-tropical-leaves-background_23-2148954475.jpg?t=st=1733431967~exp=1733435567~hmac=56c5908e8e99d42c36e79dacde11e126b8f1367bd550713bec48db4456ce540c&w=900') no-repeat center center fixed;
 	background-size: cover;
-    color: #ffffff;
     display: flex;
     flex-direction: row; /* Change to row to make the content side by side */
     align-items: stretch; /* Align items to stretch to full height */
@@ -17,7 +16,7 @@ body {
 /* Canvas container */
 .canvas {
     margin: 20px;
-    text-align: center;
+
     border: 3px solid #171c6a;
     border-radius: 10px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
@@ -25,8 +24,6 @@ body {
     max-width: 100%;
     background: url('https://i.postimg.cc/kMKrJd9B/BG001.jpg') center/cover no-repeat;
 	opacity: 92%;
-    /* For a gradient instead: */
-    /* background: linear-gradient(135deg, #3b4371, #f3904f); */
 }
 
 #gl-canvas {
