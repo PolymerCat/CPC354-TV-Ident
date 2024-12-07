@@ -16,7 +16,6 @@ body {
 /* Canvas container */
 .canvas {
     margin: 20px;
-
     border: 3px solid #171c6a;
     border-radius: 10px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
@@ -71,8 +70,6 @@ body {
     font-size: 1rem;
     color: #000000;
 }
-
-
 
 /* Slider container with range labels */
 .slider-container {
@@ -152,7 +149,7 @@ input.slide::-moz-range-thumb {
 /* Radio buttons */
 .checkText {
     font-size: 1rem;
-    flex-grow: 1;
+    flex: 7;
     text-align: left;
     color: #000000;
 }
